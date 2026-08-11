@@ -1,0 +1,18 @@
+[package]
+name = "cand-driver"
+version.workspace = true
+edition.workspace = true
+
+[[bin]]
+name = "cand"
+path = "src/main.rs"
+
+[dependencies]
+cand-lexer = { path = "../cand-lexer" }
+cand-ast = { path = "../cand-ast" }
+cand-parser = { path = "../cand-parser" }
+cand-diagnostics = { path = "../cand-diagnostics" }
+cand-codegen = { path = "../cand-codegen" }
+clap = { workspace = true }
+colored = { workspace = true }
+anyhow = { workspace = true }

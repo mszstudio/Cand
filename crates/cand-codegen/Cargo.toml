@@ -1,0 +1,10 @@
+[package]
+name = "cand-codegen"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+cand-ast = { path = "../cand-ast" }
+cand-lexer = { path = "../cand-lexer" }
+thiserror = { workspace = true }
+anyhow = { workspace = true }

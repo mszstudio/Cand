@@ -1,0 +1,7 @@
+[package]
+name = "cand-workspace"
+version = "0.1.0"
+authors = ["MSZ Studio"]
+license = "MIT"
+
+[dependencies]

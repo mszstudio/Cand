@@ -1,0 +1,9 @@
+[package]
+name = "cand-parser"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+cand-lexer = { path = "../cand-lexer" }
+cand-ast = { path = "../cand-ast" }
+thiserror = { workspace = true }

@@ -1,0 +1,30 @@
+# Rust Cargo target directory
+/target
+Cargo.lock
+
+# Executables & IR artifacts
+*.exe
+*.ll
+*.pdb
+*.obj
+*.o
+*.out
+*.a
+*.so
+*.dylib
+
+# C& temporary build artifacts
+examples/**/*.exe
+examples/**/*.ll
+
+# IDE & Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Logs & temp files
+*.log
+tmp/
+.gemini/

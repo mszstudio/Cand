@@ -1,0 +1,8 @@
+[package]
+name = "cand-semantic"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+cand-ast = { path = "../cand-ast" }
+thiserror = { workspace = true }

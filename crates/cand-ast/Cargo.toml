@@ -1,0 +1,7 @@
+[package]
+name = "cand-ast"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+cand-lexer = { path = "../cand-lexer" }
