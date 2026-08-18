@@ -1,0 +1,31 @@
+// C& Programming Language — Full Ecosystem Demo (Python, Discord Net, .env, Desktop GUI)
+
+import gui;
+import python;
+import net;
+import env;
+
+fn main() -> int {
+    println("=================================================================");
+    println("  C& Language Ecosystem Integration Demo (Python, Net, .env)     ");
+    println("=================================================================");
+
+    // 1. Load .env Configuration
+    load_env(".env");
+    println("[1/3] Loaded .env configuration file.");
+
+    // 2. Python Interop Engine Demo
+    println("[2/3] Executing Python code directly inside C&...");
+    py_exec("import sys; print(f'Hello from Python {sys.version.split()[0]} inside C& Ecosystem!')");
+
+    // 3. Desktop GUI Dialog
+    let mut win: Window;
+    win.title = "C& Ecosystem Application";
+    win.width = 400;
+    win.height = 300;
+    win.visible = 1;
+
+    win.show_message("C& now supports Python packages, Discord APIs, .env configuration, and Modern Desktop GUIs!", "C& Ecosystem Engine");
+
+    return 0;
+}

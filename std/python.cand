@@ -1,0 +1,8 @@
+// C& Programming Language — Python Interop Engine Library (std/python.cand)
+// Enables running any Python library (discord.py, numpy, pandas, requests, etc.) from C&
+
+extern "C" fn cand_py_exec(code: string) -> int
+
+pub fn py_exec(code: string) -> int {
+    return cand_py_exec(code);
+}

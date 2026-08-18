@@ -1,0 +1,15 @@
+// C& Standard Math Test Module
+pub struct Vector2D {
+    pub x: int,
+    pub y: int
+}
+
+impl Vector2D {
+    pub fn sum(self: *Vector2D) -> int {
+        return self.x + self.y;
+    }
+}
+
+pub fn add_numbers(a: int, b: int) -> int {
+    return a + b;
+}

@@ -1,0 +1,19 @@
+// C& Programming Language — Arabic Discord Bot & Node.js Example
+
+import node;
+import sys;
+
+fn main() -> int {
+    println("=================================================");
+    println("  C& Language — Node.js & Arabic Text Integration");
+    println("=================================================");
+
+    // 1. طباعة نصوص باللغة العربية بوضوح ودون مشاكل ترميز
+    println("مرحباً بك في المحرك المطور بلغة C&!");
+    println("يتم الآن تشغيل واستدعاء حزم Node.js وبوتات ديسكورد...");
+
+    // 2. تشغيل كود Node.js ومكتبات discord.js
+    node_exec("console.log('Node.js Discord Engine initialized inside C&!')");
+
+    return 0;
+}

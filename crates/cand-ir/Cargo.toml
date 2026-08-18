@@ -1,7 +1,0 @@
-[package]
-name = "cand-ir"
-version.workspace = true
-edition.workspace = true
-
-[dependencies]
-cand-ast = { path = "../cand-ast" }

@@ -1,0 +1,27 @@
+// C& Programming Language — Example Custom Desktop App
+// تطبيق نموذجي يوضح كيفية بناء تطبيق سطح مكتب خاص بك بلغة C&
+
+import gui;
+import math;
+
+fn main() -> int {
+    println("=================================================");
+    println("  Welcome to your Custom C& Application Engine   ");
+    println("=================================================");
+
+    let val1: int = 150;
+    let val2: int = 350;
+    let max_result: int = max_val(val1, val2);
+
+    println("Calculated Highest Value: ");
+    println(max_result);
+
+    let mut win: Window;
+    win.title = "My Custom C& Desktop App";
+    win.width = 350;
+    win.height = 350;
+    win.visible = 1;
+
+    win.show_message("تهانينا! لغة C& جاهزة تماماً لبناء كافة تطبيقاتك المستقبلية بنجاح!", "C& Application Engine");
+    return 0;
+}

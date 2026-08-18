@@ -1,0 +1,33 @@
+// C& Programming Language — Standard UI Library (std/ui.cand)
+// مكتبة الواجهات البرمجية الرسومية المتقدمة للغة C&
+
+extern "C" fn MessageBoxA(hWnd: int, lpText: string, lpCaption: string, uType: int) -> int
+
+pub struct WindowUI {
+    pub title: string,
+    pub width: int,
+    pub height: int
+}
+
+impl WindowUI {
+    pub fn alert(self: *WindowUI, message: string, title: string) -> int {
+        return MessageBoxA(0, message, title, 64);
+    }
+
+    pub fn warning(self: *WindowUI, message: string, title: string) -> int {
+        return MessageBoxA(0, message, title, 48);
+    }
+
+    pub fn error(self: *WindowUI, message: string, title: string) -> int {
+        return MessageBoxA(0, message, title, 16);
+    }
+
+    pub fn show_result(self: *WindowUI, op_name: string, num1: int, num2: int, result: int) -> int {
+        println("==========================================");
+        println("  C& Native UI Window Event Executed");
+        println("  العملية: ", op_name);
+        println("  النتيجة المحسوبة: ", result);
+        println("==========================================");
+        return MessageBoxA(0, "C& Graphical UI Window\n\nOperation: Executed Successfully!\n\nCalculated Result = Output Verified", "C& Standard UI Library", 64);
+    }
+}

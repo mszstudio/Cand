@@ -1,0 +1,13 @@
+// C& Programming Language — Node.js & NPM Interop Library (std/node.cand)
+// Enables running Node.js scripts and installing NPM packages (discord.js, express, axios, etc.)
+
+extern "C" fn cand_node_exec(code: string) -> int
+extern "C" fn cand_npm_install(pkg: string) -> int
+
+pub fn node_exec(code: string) -> int {
+    return cand_node_exec(code);
+}
+
+pub fn npm_install(pkg: string) -> int {
+    return cand_npm_install(pkg);
+}

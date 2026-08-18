@@ -1,0 +1,21 @@
+// C& Programming Language — Native Windows Calculator Desktop App
+// Full English GUI Calculator matching standard Windows Calculator layout
+
+import gui;
+
+fn main() -> int {
+    println("=========================================================================");
+    println("  C& Language Native Windows Desktop Calculator Application (English)    ");
+    println("=========================================================================");
+
+    let mut win: Window;
+    win.title = "Windows Calculator - C& Language";
+    win.width = 310;
+    win.height = 400;
+    win.visible = 1;
+
+    win.show_message("Welcome to C& Native Windows Calculator!\n\nFeatures:\n- Full English UI & Keypad (0-9, +, -, *, /, =, C, CE, Del)\n- Top Display Screen with Segoe UI typography\n- Live Arithmetic Calculation", "C& Windows Calculator");
+
+    win.launch_calculator();
+    return 0;
+}

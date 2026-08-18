@@ -1,0 +1,29 @@
+// C& Programming Language — How to Import Libraries Tutorial
+// دليل توضيحي شاملاً لكيفية استدعاء المكتبات المختلفة بلغة C&
+
+import gui;
+import math;
+import sys;
+
+fn main() -> int {
+    println("=================================================");
+    println("  C& Language — How to Import & Use Libraries    ");
+    println("=================================================");
+
+    // 1. استخدام مكتبة الرياضيات (math)
+    let a: int = 40;
+    let b: int = 85;
+    let biggest: int = max_val(a, b);
+    println("Max value using std/math: ");
+    println(biggest);
+
+    // 2. استخدام مكتبة الواجهات (gui)
+    let mut win: Window;
+    win.title = "Import Demo Window";
+    win.width = 300;
+    win.height = 200;
+    win.visible = 1;
+    win.show_message("تم استدعاء واستخدام كافة المكتبات بنجاح!", "C& Library Import Guide");
+
+    return 0;
+}

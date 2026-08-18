@@ -1,0 +1,29 @@
+import sqlite;
+
+struct Point {
+    x: int,
+    y: int
+}
+
+impl Point {
+    fn area(self: Point) -> int {
+        return self.x * self.y;
+    }
+}
+
+fn main() {
+    println("=== C& Language Manifesto Demo ===");
+
+    let mut counter: int = 0;
+    while counter < 3 {
+        println(counter);
+        counter = counter + 1;
+    }
+
+    println("Iterating with for loop:");
+    for i in 0..5 {
+        println(i);
+    }
+
+    println("C& Manifesto Demo Executed Successfully!");
+}

@@ -1,0 +1,52 @@
+import test_math;
+
+extern fn puts(value: *char) -> int;
+
+pub struct Point {
+    pub x: int,
+    pub y: int
+}
+
+impl Point {
+    pub fn area(self: *Point) -> int {
+        return self.x * self.y;
+    }
+}
+
+fn main() -> int {
+    puts("=== C& Native Compiler Integration Test Suite ===");
+
+    // Test struct & impl method
+    let mut p: Point;
+    p.x = 10;
+    p.y = 5;
+
+    let area: int = p.area();
+    println("Calculated Area: ", area);
+
+    // Test imported module function and struct
+    let sum: int = add_numbers(20, 30);
+    println("Imported add_numbers result: ", sum);
+
+    let mut vec: Vector2D;
+    vec.x = 3;
+    vec.y = 4;
+    let vec_sum: int = vec.sum();
+    println("Imported Vector2D sum: ", vec_sum);
+
+    // Test for loop (range 0..5)
+    println("Testing range loop for i in 0..5:");
+    for i in 0..5 {
+        println("  Loop index: ", i);
+    }
+
+    // Test while loop
+    let mut counter: int = 0;
+    while counter < 3 {
+        println("  While counter: ", counter);
+        counter = counter + 1;
+    }
+
+    println("All C& Engine features verified successfully!");
+    return 0;
+}

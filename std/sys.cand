@@ -1,0 +1,12 @@
+// C& Programming Language — System Utilities Standard Library (std/sys.cand)
+
+extern "C" fn exit(status: int) -> void
+extern "C" fn Sleep(dwMilliseconds: int) -> void
+
+pub fn exit_app(code: int) -> void {
+    exit(code);
+}
+
+pub fn sleep_ms(ms: int) -> void {
+    Sleep(ms);
+}

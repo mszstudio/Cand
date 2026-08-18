@@ -1,0 +1,29 @@
+// C& Programming Language — Math Standard Library (std/math.cand)
+// Standard mathematical functions for C& applications
+
+extern "C" fn sqrt(x: double) -> double
+extern "C" fn pow(x: double, y: double) -> double
+extern "C" fn fabs(x: double) -> double
+extern "C" fn floor(x: double) -> double
+extern "C" fn ceil(x: double) -> double
+
+pub fn abs_val(x: int) -> int {
+    if (x < 0) {
+        return 0 - x;
+    }
+    return x;
+}
+
+pub fn min_val(a: int, b: int) -> int {
+    if (a < b) {
+        return a;
+    }
+    return b;
+}
+
+pub fn max_val(a: int, b: int) -> int {
+    if (a > b) {
+        return a;
+    }
+    return b;
+}

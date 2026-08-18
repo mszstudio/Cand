@@ -1,0 +1,44 @@
+// C& Programming Language — GUI Framework Library (std/gui.cand)
+// مكتبة الواجهات البرمجية الرسمية المتقدمة لإنشاء نوافذ وتطبيقات سطح المكتب بلغة C&
+
+extern "C" fn MessageBoxA(hWnd: int, lpText: string, lpCaption: string, uType: int) -> int
+extern "C" fn cand_launch_calculator_window(title: string) -> int
+
+pub struct Control {
+    pub id: int,
+    pub x: int,
+    pub y: int,
+    pub width: int,
+    pub height: int,
+    pub text: string
+}
+
+pub struct Window {
+    pub title: string,
+    pub width: int,
+    pub height: int,
+    pub visible: int
+}
+
+impl Window {
+    pub fn new(title: string, width: int, height: int) -> Window {
+        let mut win: Window;
+        win.title = title;
+        win.width = width;
+        win.height = height;
+        win.visible = 1;
+        return win;
+    }
+
+    pub fn launch_calculator(self: *Window) -> int {
+        return cand_launch_calculator_window(self.title);
+    }
+
+    pub fn show_message(self: *Window, message: string, caption: string) -> int {
+        return MessageBoxA(0, message, caption, 64);
+    }
+
+    pub fn show_error(self: *Window, message: string, caption: string) -> int {
+        return MessageBoxA(0, message, caption, 16);
+    }
+}

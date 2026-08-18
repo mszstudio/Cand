@@ -1,0 +1,71 @@
+import ui;
+
+pub struct InteractiveCalculator {
+    pub num1: int,
+    pub num2: int,
+    pub result: int
+}
+
+impl InteractiveCalculator {
+    pub fn add(self: *InteractiveCalculator, a: int, b: int) -> int {
+        self.num1 = a;
+        self.num2 = b;
+        self.result = a + b;
+        return self.result;
+    }
+
+    pub fn subtract(self: *InteractiveCalculator, a: int, b: int) -> int {
+        self.num1 = a;
+        self.num2 = b;
+        self.result = a - b;
+        return self.result;
+    }
+
+    pub fn multiply(self: *InteractiveCalculator, a: int, b: int) -> int {
+        self.num1 = a;
+        self.num2 = b;
+        self.result = a * b;
+        return self.result;
+    }
+
+    pub fn divide(self: *InteractiveCalculator, a: int, b: int) -> int {
+        self.num1 = a;
+        self.num2 = b;
+        if (b == 0) {
+            self.result = 0;
+            return 0;
+        }
+        self.result = a / b;
+        return self.result;
+    }
+}
+
+fn main() -> int {
+    println("=== C& Native UI Library Calculator Demo ===");
+    
+    let mut win: WindowUI;
+    win.width = 400;
+    win.height = 500;
+    
+    win.alert("Welcome to C& Native Interactive UI Calculator!\n\nThis application uses the C& Standard UI Library (std/ui) to execute live calculations with graphical windows.", "C& GUI Library Calculator Launcher");
+
+    let mut calc: InteractiveCalculator;
+    calc.num1 = 0;
+    calc.num2 = 0;
+    calc.result = 0;
+
+    let res1: int = calc.add(150, 350);
+    win.show_result("Addition (150 + 350)", 150, 350, res1);
+
+    let res2: int = calc.subtract(999, 444);
+    win.show_result("Subtraction (999 - 444)", 999, 444, res2);
+
+    let res3: int = calc.multiply(25, 20);
+    win.show_result("Multiplication (25 * 20)", 25, 20, res3);
+
+    let res4: int = calc.divide(888, 8);
+    win.show_result("Division (888 / 8)", 888, 8, res4);
+
+    win.alert("All operations completed successfully via C& Standard UI Library!", "C& UI Calculator Completed");
+    return 0;
+}

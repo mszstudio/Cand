@@ -6,37 +6,58 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)]()
 [![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey.svg)]()
+[![Philosophy](https://img.shields.io/badge/philosophy-C%2C%20Reconsidered-orange.svg)](PHILOSOPHY.md)
 
 ---
 
-## 📌 Overview
+## 📌 Overview & Core Philosophy
 
-C& (pronounced "C-and") is a modern, high-performance systems programming language derived in philosophy from C, but designed to be safer, cleaner, more practical, and memory-safe by default.
+**C&** (pronounced *"C-and"*) is an independent, high-performance systems programming language. It takes the essence of C systems programming — control, simplicity, closeness to the system, and predictable performance — and rebuilds the developer experience around it with modern rules and unified tooling.
 
-Developed by **MSZ Studio**, C& combines the raw speed of C with modern compiler diagnostics, clean syntax, explicit ownership semantics, and zero-cost LLVM native machine code generation.
+Read the full [C& Manifesto & Philosophy](PHILOSOPHY.md) (`PHILOSOPHY.md`).
+
+> **Not C made bigger.**  
+> **Not Rust made simpler.**  
+> **Not C++ redesigned.**  
+> **C, reconsidered.**
 
 ---
 
-## ✨ Key Features
+## ✨ Key Differentiators
 
-- **Blazing Fast:** Compiles directly to native machine code via LLVM backend.
-- **C-Like Syntax:** Familiar, clean, and concise syntax for systems programmers.
-- **Memory Safety without GC:** Explicit ownership semantics (`owned<T>`, `borrow<T>`, `shared<T>`) and scoped pointers.
-- **Zero-Cost C Interop (FFI):** Direct foreign function calls to existing C libraries via `extern "C"`.
-- **Modern Error Handling:** `Result<T, E>` and `Option<T>` with `?` propagation operator.
-- **Built-in Toolchain:** Package management (`cand.toml`), testing (`cand test`), linting (`cand lint`), formatting (`cand fmt`), and diagnostics (`cand doctor`).
+- **C-Level Control + Modern Syntax:** Expressive syntax (`let`, `mut`, `fn`) with direct system-level memory control.
+- **Rust/Cargo-Independent:** Self-contained native C compiler (`cand.exe`) written in pure C.
+- **Predictable Performance:** No mandatory garbage collection or heavy runtime VM overhead.
+- **Zero-Cost C Interoperability:** Uses standard C ABI for seamless integration with existing C libraries (SQLite, Raylib, OpenSSL).
+- **Unified Tooling (`cand` CLI):** Integrated commands for build, run, doctor, formatting, linting, and diagnostics.
 
 ---
 
 ## 🚀 Quick Start
 
-### 1. Prerequisites
-- [Rust toolchain](https://rustup.rs/) (v1.75+)
-- [LLVM / Clang](https://llvm.org/) (v17+)
+### 1. Build Compiler (`cand.exe`)
+Requirements: Any standard C compiler (Clang, GCC, or MSVC).
 
-### 2. Build Compiler
 ```bash
-cargo build --release
+# On Windows
+build.bat
+
+# On Linux / macOS
+make
+```
+
+### 2. Check Toolchain Status
+```bash
+cand doctor
+```
+Output:
+```text
+=== C& Compiler Toolchain Doctor ===
+  [✓] C& Native Compiler: v1.0.0 (Independent Native Compiler) (Independent)
+  [✓] Language Autonomy: 100% Standalone (No Rust, No External Apps)
+  [✓] Build Engine: Native Standalone Executable Generator
+
+System is fully independent and ready for C& development!
 ```
 
 ### 3. Compile & Run C& Program
@@ -47,7 +68,7 @@ fn main() {
 }
 ```
 
-Run with `cand`:
+Compile & Run with `cand`:
 ```bash
 cand run main.cand
 ```
@@ -67,13 +88,12 @@ Hello, C&!
 
 ```bash
 cand build main.cand     # Build native executable binary (.exe)
-cand run main.cand       # Build and run immediately
-cand test                # Run built-in unit tests
-cand fmt                 # Format C& source code
-cand lint                # Static analysis & security checks
-cand clean               # Clean build artifacts
-cand doctor              # Audit system environment & LLVM installation
+cand run main.cand       # Build and execute immediately
+cand doctor              # Audit system environment & compiler toolchain
 cand version             # Display compiler version details
+cand clean               # Clean build artifacts
+cand fmt                 # Format C& source code
+cand lint                # Static analysis & checks
 ```
 
 ---
@@ -82,27 +102,23 @@ cand version             # Display compiler version details
 
 ```text
 c-and/
-├── Cargo.toml                    # Workspace manifest
+├── build.bat                     # Windows Native Batch build script
+├── Makefile                      # Cross-platform Makefile
 ├── cand.toml                     # C& project manifest
 ├── LICENSE                       # Official MIT License (MSZ Studio)
 ├── README.md                     # Main documentation
+├── PHILOSOPHY.md                 # Official C& Manifesto & 10 Principles
 ├── ARCHITECTURE.md               # Compiler architecture map
 ├── COMPILER.md                   # Compiler pipeline details
 ├── LANGUAGE.md                   # Language syntax guide
 ├── ROADMAP.md                    # Multi-phase project roadmap
-├── CONTRIBUTING.md               # Guidelines for contributors
-├── docs/
-│   └── language-spec.md          # Full C& Language Specification
-├── crates/
-│   ├── cand-lexer/               # Tokenizer & lexical analyzer
-│   ├── cand-ast/                 # AST data structures
-│   ├── cand-parser/              # Recursive descent parser
-│   ├── cand-diagnostics/         # Rich source-spanned error reporter
-│   ├── cand-semantic/            # Semantic analyzer & type checker
-│   ├── cand-types/               # Type system definitions
-│   ├── cand-ir/                  # High-level IR
-│   ├── cand-codegen/             # LLVM IR code generator
-│   └── cand-driver/              # `cand` CLI binary driver
+├── src/                          # Pure C Compiler Source Code
+│   ├── cand_compiler.h           # Unified compiler header
+│   ├── cand_lexer.c              # Handcrafted Lexical Analyzer
+│   ├── cand_parser.c             # Recursive Descent Parser (AST)
+│   ├── cand_semantic.c           # Semantic Analyzer & Type Checker
+│   ├── cand_codegen.c            # Code Generator & C-Backend
+│   └── cand_driver.c             # `cand` CLI Driver binary entrypoint
 └── examples/
     └── hello-world/
         └── main.cand             # Integration test program

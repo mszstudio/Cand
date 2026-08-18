@@ -1,0 +1,7 @@
+// C& Programming Language — Network & Discord Integration Library (std/net.cand)
+
+extern "C" fn cand_send_discord_webhook(url: string, message: string) -> int
+
+pub fn discord_notify(webhook_url: string, message: string) -> int {
+    return cand_send_discord_webhook(webhook_url, message);
+}

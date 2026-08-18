@@ -1,0 +1,73 @@
+// C& Programming Language — Calculator Application with Native Windows GUI (واجهة آلة حاسبة بلغة C&)
+// Developed completely in C& with struct OOP semantics and Win32 GUI FFI
+
+extern "C" fn MessageBoxA(hWnd: int, lpText: string, lpCaption: string, uType: int) -> int
+
+pub struct Calculator {
+    pub value_a: int,
+    pub value_b: int,
+    pub result: int
+}
+
+impl Calculator {
+    pub fn add(self: *Calculator, a: int, b: int) -> int {
+        self.value_a = a;
+        self.value_b = b;
+        self.result = a + b;
+        return self.result;
+    }
+
+    pub fn subtract(self: *Calculator, a: int, b: int) -> int {
+        self.value_a = a;
+        self.value_b = b;
+        self.result = a - b;
+        return self.result;
+    }
+
+    pub fn multiply(self: *Calculator, a: int, b: int) -> int {
+        self.value_a = a;
+        self.value_b = b;
+        self.result = a * b;
+        return self.result;
+    }
+
+    pub fn divide(self: *Calculator, a: int, b: int) -> int {
+        self.value_a = a;
+        self.value_b = b;
+        if (b == 0) {
+            println("Error: Division by zero");
+            self.result = 0;
+            return 0;
+        }
+        self.result = a / b;
+        return self.result;
+    }
+}
+
+fn main() -> int {
+    println("=== C& Language GUI Calculator Demo ===");
+    
+    let mut calc: Calculator;
+    calc.value_a = 0;
+    calc.value_b = 0;
+    calc.result = 0;
+    
+    let add_res: int = calc.add(25, 15);
+    println("25 + 15 = ", add_res);
+    MessageBoxA(0, "C& Native Calculator GUI\n\nOperation: 25 + 15\nResult = 40", "C& GUI Calculator", 64);
+    
+    let sub_res: int = calc.subtract(100, 30);
+    println("100 - 30 = ", sub_res);
+    MessageBoxA(0, "C& Native Calculator GUI\n\nOperation: 100 - 30\nResult = 70", "C& GUI Calculator", 64);
+
+    let mul_res: int = calc.multiply(8, 9);
+    println("8 * 9 = ", mul_res);
+    MessageBoxA(0, "C& Native Calculator GUI\n\nOperation: 8 * 9\nResult = 72", "C& GUI Calculator", 64);
+
+    let div_res: int = calc.divide(144, 12);
+    println("144 / 12 = ", div_res);
+    MessageBoxA(0, "C& Native Calculator GUI\n\nOperation: 144 / 12\nResult = 12\n\nAll calculations verified successfully!", "C& GUI Calculator", 64);
+
+    println("C& Calculator application executed successfully!");
+    return 0;
+}

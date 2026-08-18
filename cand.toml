@@ -5,3 +5,6 @@ authors = ["MSZ Studio"]
 license = "MIT"
 
 [dependencies]
+
+[dependencies]
+sqlite = "latest"

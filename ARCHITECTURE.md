@@ -1,32 +1,44 @@
-# C& Compiler Architecture
+# C& Compiler Architecture Map
+
+> **Native C Implementation — Independent Toolchain**
 
 ```text
-C& Source (.cand)
-    │
-    ▼
-[ cand-lexer ] ─────► Stream of Tokens
-    │
-    ▼
-[ cand-parser ] ────► Abstract Syntax Tree (AST)
-    │
-    ▼
-[ cand-semantic ] ──► Type Checker & Name Resolution
-    │
-    ▼
-[ cand-codegen ] ───► LLVM IR (.ll)
-    │
-    ▼
-[ LLVM / Clang ] ───► Native Binary Executable (.exe / ELF)
+C& Source Code (.cand)
+         │
+         ▼
+ ┌──────────────┐
+ │  cand_lexer  │  Lexical Analyzer (Tokens)
+ └──────┬───────┘
+        │
+        ▼
+ ┌──────────────┐
+ │  cand_parser │  Recursive Descent Parser (AST Nodes)
+ └──────┬───────┘
+        │
+        ▼
+ ┌──────────────┐
+ │cand_semantic │  Semantic Analyzer & Type Validation
+ └──────┬───────┘
+        │
+        ▼
+ ┌──────────────┐
+ │ cand_codegen │  Optimized C Representation & C-Backend
+ └──────┬───────┘
+        │
+        ▼
+ ┌──────────────┐
+ │ System C     │  Clang / GCC / MSVC System Compiler
+ └──────┬───────┘
+        │
+        ▼
+Native Binary (.exe)
 ```
 
-## Modular Crates Structure
+## Core Compiler Subsystems (`src/`)
 
-- `cand-lexer`: Tokenization and lexical analysis.
-- `cand-ast`: AST node definitions.
-- `cand-parser`: Recursive descent parser.
-- `cand-diagnostics`: Rich compiler diagnostic reporting with source spans.
-- `cand-semantic`: Type checker and symbol table analyzer.
-- `cand-types`: C& type representation and type checking logic.
-- `cand-ir`: High-level C& Intermediate Representation.
-- `cand-codegen`: Translates AST to structured LLVM IR.
-- `cand-driver`: CLI runner (`cand build`, `cand run`, `cand doctor`, etc.).
+1. **`cand_compiler.h`**: Primary header defining core structures (`Token`, `ASTNode`, `Lexer`, `Parser`).
+2. **`cand_lexer.c`**: Efficient lexer parsing C& keywords (`fn`, `let`, `mut`, `if`, `return`, `println`).
+3. **`cand_parser.c`**: Recursive descent parser emitting abstract syntax trees with zero memory leaks.
+4. **`cand_semantic.c`**: Type validator ensuring expression and function signature consistency.
+5. **`cand_codegen.c`**: Emits high-level C runtime code and invokes host compiler to generate native binaries.
+6. **`cand_driver.c`**: CLI driver managing `cand build`, `run`, `doctor`, `version`, `clean`, `fmt`, and `lint`.

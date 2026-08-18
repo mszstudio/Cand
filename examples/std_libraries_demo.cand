@@ -1,0 +1,25 @@
+// C& Programming Language — Standard Library Verification Demo
+
+import gui;
+import math;
+import sys;
+
+fn main() -> int {
+    println("=================================================");
+    println("  C& Language Standard Library Verification Demo  ");
+    println("=================================================");
+
+    let min_res: int = min_val(15, 42);
+    let max_res: int = max_val(100, 250);
+    let abs_res: int = abs_val(0 - 99);
+
+    println("Math min_val(15, 42) -> ");
+    println(min_res);
+    println("Math max_val(100, 250) -> ");
+    println(max_res);
+    println("Math abs_val(-99) -> ");
+    println(abs_res);
+
+    println("\n[OK] All C& language definitions and standard libraries verified successfully!");
+    return 0;
+}

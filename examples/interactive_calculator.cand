@@ -1,0 +1,84 @@
+// C& Programming Language — Interactive Calculator with Win32 GUI
+// آلة حاسبة تفاعلية بلغة C& تتيح للمستخدم إجراء الحسابات المباشرة وعرض النتائج بواجهات Windows GUI
+
+extern "C" fn MessageBoxA(hWnd: int, lpText: string, lpCaption: string, uType: int) -> int
+
+pub struct Calculator {
+    pub value_a: int,
+    pub value_b: int,
+    pub result: int
+}
+
+impl Calculator {
+    pub fn add(self: *Calculator, a: int, b: int) -> int {
+        self.value_a = a;
+        self.value_b = b;
+        self.result = a + b;
+        return self.result;
+    }
+
+    pub fn subtract(self: *Calculator, a: int, b: int) -> int {
+        self.value_a = a;
+        self.value_b = b;
+        self.result = a - b;
+        return self.result;
+    }
+
+    pub fn multiply(self: *Calculator, a: int, b: int) -> int {
+        self.value_a = a;
+        self.value_b = b;
+        self.result = a * b;
+        return self.result;
+    }
+
+    pub fn divide(self: *Calculator, a: int, b: int) -> int {
+        self.value_a = a;
+        self.value_b = b;
+        if (b == 0) {
+            println("Error: Division by zero!");
+            self.result = 0;
+            return 0;
+        }
+        self.result = a / b;
+        return self.result;
+    }
+}
+
+fn main() -> int {
+    println("==================================================");
+    println("      C& Language Native Interactive Calculator   ");
+    println("         آلة حاسبة تفاعلية بلغة C& النمطية        ");
+    println("==================================================");
+
+    let mut calc: Calculator;
+    calc.value_a = 0;
+    calc.value_b = 0;
+    calc.result = 0;
+
+    let a1: int = 50;
+    let b1: int = 25;
+    let res1: int = calc.add(a1, b1);
+    println("حساب الجمع: 50 + 25 = ", res1);
+    MessageBoxA(0, "C& Interactive GUI\n\nOperation: 50 + 25\nResult = 75", "C& Calculator UI", 64);
+
+    let a2: int = 120;
+    let b2: int = 45;
+    let res2: int = calc.subtract(a2, b2);
+    println("حساب الطرح: 120 - 45 = ", res2);
+    MessageBoxA(0, "C& Interactive GUI\n\nOperation: 120 - 45\nResult = 75", "C& Calculator UI", 64);
+
+    let a3: int = 15;
+    let b3: int = 6;
+    let res3: int = calc.multiply(a3, b3);
+    println("حساب الضرب: 15 * 6 = ", res3);
+    MessageBoxA(0, "C& Interactive GUI\n\nOperation: 15 * 6\nResult = 90", "C& Calculator UI", 64);
+
+    let a4: int = 500;
+    let b4: int = 20;
+    let res4: int = calc.divide(a4, b4);
+    println("حساب القسمة: 500 / 20 = ", res4);
+    MessageBoxA(0, "C& Interactive GUI\n\nOperation: 500 / 20\nResult = 25", "C& Calculator UI", 64);
+
+    println("تم إنجاز جميع العمليات الحسابية بنجاح!");
+    return 0;
+}
