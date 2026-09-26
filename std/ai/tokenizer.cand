@@ -1,0 +1,18 @@
+// C& Programming Language — Native Tokenizer Library (std/ai/tokenizer.cand)
+// Copyright (c) 2026 MSZ Studio. All rights reserved.
+
+extern "C" fn cand_tokenizer_create() -> *void
+extern "C" fn cand_tokenizer_add_word(tok: *void, word: string) -> int
+extern "C" fn cand_tokenizer_lookup(tok: *void, word: string) -> int
+
+pub fn tokenizer_create() -> *void {
+    return cand_tokenizer_create();
+}
+
+pub fn tokenizer_add_word(tok: *void, word: string) -> int {
+    return cand_tokenizer_add_word(tok, word);
+}
+
+pub fn tokenizer_lookup(tok: *void, word: string) -> int {
+    return cand_tokenizer_lookup(tok, word);
+}

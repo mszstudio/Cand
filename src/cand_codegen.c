@@ -47,17 +47,30 @@ ASTNode *module_load(const char *module_name, const char *importer_filename) {
         }
     }
 
-    char candidate_paths[5][256];
-    snprintf(candidate_paths[0], sizeof(candidate_paths[0]), "%s%s.cand", dir_prefix, norm_name);
-    snprintf(candidate_paths[1], sizeof(candidate_paths[1]), "%s.cand", norm_name);
-    snprintf(candidate_paths[2], sizeof(candidate_paths[2]), "std/%s.cand", norm_name);
-    snprintf(candidate_paths[3], sizeof(candidate_paths[3]), "src/%s.cand", norm_name);
-    snprintf(candidate_paths[4], sizeof(candidate_paths[4]), "tests/%s.cand", norm_name);
+    char candidate_paths[12][512];
+    int cand_count = 0;
+    snprintf(candidate_paths[cand_count++], 512, "%s%s.cand", dir_prefix, norm_name);
+    snprintf(candidate_paths[cand_count++], 512, "%s.cand", norm_name);
+    snprintf(candidate_paths[cand_count++], 512, "std/%s.cand", norm_name);
+    snprintf(candidate_paths[cand_count++], 512, "src/%s.cand", norm_name);
+    snprintf(candidate_paths[cand_count++], 512, "tests/%s.cand", norm_name);
+    snprintf(candidate_paths[cand_count++], 512, "experiments/tests/%s.cand", norm_name);
+
+    const char *cand_env = getenv("CAND_PATH");
+    if (cand_env) {
+        snprintf(candidate_paths[cand_count++], 512, "%s/std/%s.cand", cand_env, norm_name);
+    }
+    const char *home_env = getenv("HOME");
+    if (home_env) {
+        snprintf(candidate_paths[cand_count++], 512, "%s/.local/share/cand/std/%s.cand", home_env, norm_name);
+    }
+    snprintf(candidate_paths[cand_count++], 512, "/usr/local/share/cand/std/%s.cand", norm_name);
+    snprintf(candidate_paths[cand_count++], 512, "/usr/share/cand/std/%s.cand", norm_name);
 
     FILE *f = NULL;
-    char target_path[256] = "";
+    char target_path[512] = "";
 
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < cand_count; i++) {
         f = fopen(candidate_paths[i], "rb");
         if (f) {
             strcpy(target_path, candidate_paths[i]);
@@ -118,7 +131,7 @@ ASTNode *module_load(const char *module_name, const char *importer_filename) {
 
 static void map_type_to_c(const char *cand_type, bool is_pointer, char *out_c_type, size_t size) {
     if (strcmp(cand_type, "int") == 0) strcpy(out_c_type, "int");
-    else if (strcmp(cand_type, "float") == 0) strcpy(out_c_type, "double");
+    else if (strcmp(cand_type, "float") == 0) strcpy(out_c_type, "float");
     else if (strcmp(cand_type, "bool") == 0) strcpy(out_c_type, "bool");
     else if (strcmp(cand_type, "string") == 0) strcpy(out_c_type, "const char*");
     else if (strcmp(cand_type, "char") == 0) {
@@ -196,9 +209,9 @@ static void emit_expression(FILE *f, ASTNode *node) {
                                 arg->value, arg->value);
                     } else {
                         // Variable or number
-                        fprintf(f, is_println ? "printf(\"%%d\\n\", " : "printf(\"%%d\", ");
+                        fprintf(f, is_println ? "printf(\"%%g\\n\", (double)(" : "printf(\"%%g\", (double)(");
                         emit_expression(f, arg);
-                        fprintf(f, ")");
+                        fprintf(f, "))");
                     }
                 } else {
                     // Multi-arg: first is a label string, rest are values
@@ -225,12 +238,6 @@ static void emit_expression(FILE *f, ASTNode *node) {
                 fprintf(f, "%s(", node->name);
                 for (int i = 0; i < node->child_count; i++) {
                     if (i > 0) fprintf(f, ", ");
-                    // Pass first arg as pointer if this looks like a mangled method call
-                    // (name contains '_') AND the first argument is an identifier (not a literal)
-                    if (i == 0 && strchr(node->name, '_') != NULL &&
-                        node->children[i]->kind == AST_IDENT_EXPR) {
-                        fprintf(f, "&");
-                    }
                     emit_expression(f, node->children[i]);
                 }
                 fprintf(f, ")");
@@ -355,7 +362,22 @@ static void emit_node(FILE *f, ASTNode *node) {
         }
 
         case AST_EXTERN_DECL:
-            // Extern declarations are already provided by standard system headers (#include <windows.h>, <stdio.h>)
+            for (int i = 0; i < node->child_count; i++) {
+                ASTNode *child = node->children[i];
+                if (child->kind == AST_FN_DECL) {
+                    char ret_type[128];
+                    map_type_to_c(child->type_name, child->is_pointer, ret_type, sizeof(ret_type));
+                    fprintf(f, "extern %s %s(", ret_type, child->name);
+                    for (int p = 0; p < child->child_count; p++) {
+                        if (p > 0) fprintf(f, ", ");
+                        ASTNode *param = child->children[p];
+                        char param_type[128];
+                        map_type_to_c(param->type_name, param->is_pointer, param_type, sizeof(param_type));
+                        fprintf(f, "%s %s", param_type, param->name);
+                    }
+                    fprintf(f, ");\n");
+                }
+            }
             break;
 
         case AST_STRUCT_DECL:
@@ -400,7 +422,11 @@ static void emit_node(FILE *f, ASTNode *node) {
                 break;
             }
             char ret_type[128];
-            map_type_to_c(node->type_name, node->is_pointer, ret_type, sizeof(ret_type));
+            if (strcmp(node->name, "main") == 0) {
+                strcpy(ret_type, "int");
+            } else {
+                map_type_to_c(node->type_name, node->is_pointer, ret_type, sizeof(ret_type));
+            }
 
             fprintf(f, "%s %s(", ret_type, node->name);
             for (int p = 0; p < node->child_count; p++) {
@@ -412,12 +438,17 @@ static void emit_node(FILE *f, ASTNode *node) {
             }
             fprintf(f, ") {\n");
             if (strcmp(node->name, "main") == 0) {
+                fprintf(f, "#ifdef _WIN32\n");
                 fprintf(f, "    SetConsoleOutputCP(65001);\n");
                 fprintf(f, "    SetConsoleCP(65001);\n");
+                fprintf(f, "#endif\n");
             }
 
             for (int b = 0; b < node->body->child_count; b++) {
                 emit_statement(f, node->body->children[b], 1);
+            }
+            if (strcmp(node->name, "main") == 0) {
+                fprintf(f, "    return 0;\n");
             }
             fprintf(f, "}\n\n");
             break;
@@ -445,7 +476,30 @@ bool codegen_generate_executable(ASTNode *program, const char *output_exe_path, 
     fprintf(f, "#include <stdlib.h>\n");
     fprintf(f, "#include <stdbool.h>\n");
     fprintf(f, "#include <string.h>\n");
-    fprintf(f, "#include <windows.h>\n\n");
+    fprintf(f, "#include <math.h>\n");
+    fprintf(f, "#ifdef _WIN32\n");
+    fprintf(f, "#include <windows.h>\n");
+    fprintf(f, "#else\n");
+    fprintf(f, "#include <unistd.h>\n");
+    fprintf(f, "#include <sys/time.h>\n");
+    fprintf(f, "static inline void Sleep(unsigned int ms) { usleep(ms * 1000); }\n");
+    fprintf(f, "static inline int MessageBoxA(void* hwnd, const char* text, const char* caption, unsigned int type) {\n");
+    fprintf(f, "    (void)hwnd; (void)type;\n");
+    fprintf(f, "    char cmd[2048];\n");
+    fprintf(f, "    if (system(\"which zenity >/dev/null 2>&1\") == 0) {\n");
+    fprintf(f, "        snprintf(cmd, sizeof(cmd), \"zenity --info --title=\\\"%%s\\\" --text=\\\"%%s\\\" 2>/dev/null\", caption ? caption : \"Notice\", text ? text : \"\");\n");
+    fprintf(f, "        return system(cmd);\n");
+    fprintf(f, "    } else if (system(\"which notify-send >/dev/null 2>&1\") == 0) {\n");
+    fprintf(f, "        snprintf(cmd, sizeof(cmd), \"notify-send \\\"%%s\\\" \\\"%%s\\\" 2>/dev/null\", caption ? caption : \"Notice\", text ? text : \"\");\n");
+    fprintf(f, "        return system(cmd);\n");
+    fprintf(f, "    } else {\n");
+    fprintf(f, "        printf(\"[%s] %%s\\n\", caption ? caption : \"Notice\", text ? text : \"\");\n");
+    fprintf(f, "        return 0;\n");
+    fprintf(f, "    }\n");
+    fprintf(f, "}\n");
+    fprintf(f, "#endif\n");
+    fprintf(f, "#include \"src/cand_airuntime.h\"\n\n");
+    fprintf(f, "#ifdef _WIN32\n");
     fprintf(f, "/* C& Native Windows Desktop GUI Calculator Engine */\n");
     fprintf(f, "static HWND hCalcDisplay;\n");
     fprintf(f, "static char calc_buf[64] = \"0\";\n");
@@ -585,18 +639,30 @@ bool codegen_generate_executable(ASTNode *program, const char *output_exe_path, 
     fprintf(f, "        DispatchMessageA(&msg);\n");
     fprintf(f, "    }\n");
     fprintf(f, "    return 0;\n");
-    fprintf(f, "}\n\n");
+    fprintf(f, "}\n");
+    fprintf(f, "#else\n");
+    fprintf(f, "/* Fallback GUI Calculator for Non-Windows Platforms */\n");
+    fprintf(f, "int cand_launch_calculator_window(const char* title) {\n");
+    fprintf(f, "    (void)title;\n");
+    fprintf(f, "    printf(\"[C& GUI] GUI calculator is currently native to Windows (Win32). Terminal fallback active.\\n\");\n");
+    fprintf(f, "    return 0;\n");
+    fprintf(f, "}\n");
+    fprintf(f, "#endif\n\n");
     fprintf(f, "/* C& Python & Network Ecosystem Extensions */\n");
     fprintf(f, "int cand_py_exec(const char* code) {\n");
     fprintf(f, "    if (!code) return -1;\n");
     fprintf(f, "    char cmd[8192];\n");
-    fprintf(f, "    snprintf(cmd, sizeof(cmd), \"python -c \\\"%%s\\\"\", code);\n");
+    fprintf(f, "    snprintf(cmd, sizeof(cmd), \"python -c \\\"%%s\\\" 2>/dev/null || python3 -c \\\"%%s\\\"\", code, code);\n");
     fprintf(f, "    return system(cmd);\n");
     fprintf(f, "}\n\n");
     fprintf(f, "int cand_send_discord_webhook(const char* url, const char* message) {\n");
     fprintf(f, "    if (!url || !message) return -1;\n");
     fprintf(f, "    char cmd[8192];\n");
+    fprintf(f, "#ifdef _WIN32\n");
     fprintf(f, "    snprintf(cmd, sizeof(cmd), \"powershell -NoProfile -Command \\\"[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; $body = @{ content = '%s' } | ConvertTo-Json; Invoke-RestMethod -Uri '%s' -Method Post -ContentType 'application/json' -Body $body\\\"\", message, url);\n");
+    fprintf(f, "#else\n");
+    fprintf(f, "    snprintf(cmd, sizeof(cmd), \"curl -s -H \\\"Content-Type: application/json\\\" -d '{\\\"content\\\": \\\"%%s\\\"}' '%%s' >/dev/null 2>&1\", message, url);\n");
+    fprintf(f, "#endif\n");
     fprintf(f, "    return system(cmd);\n");
     fprintf(f, "}\n\n");
     fprintf(f, "int cand_load_env_file(const char* path) {\n");
@@ -610,7 +676,11 @@ bool codegen_generate_executable(ASTNode *program, const char *output_exe_path, 
     fprintf(f, "            char* key = line; char* val = eq + 1;\n");
     fprintf(f, "            char* nl = strchr(val, '\\r'); if (nl) *nl = '\\0';\n");
     fprintf(f, "            nl = strchr(val, '\\n'); if (nl) *nl = '\\0';\n");
+    fprintf(f, "#ifdef _WIN32\n");
     fprintf(f, "            SetEnvironmentVariableA(key, val);\n");
+    fprintf(f, "#else\n");
+    fprintf(f, "            setenv(key, val, 1);\n");
+    fprintf(f, "#endif\n");
     fprintf(f, "        }\n");
     fprintf(f, "    }\n");
     fprintf(f, "    fclose(fp);\n");
@@ -633,6 +703,16 @@ bool codegen_generate_executable(ASTNode *program, const char *output_exe_path, 
 
     fclose(f);
 
+    int res = -1;
+#ifndef _WIN32
+    char compile_cmd[4096] = "";
+    snprintf(compile_cmd, sizeof(compile_cmd),
+        "clang -O2 -I. -Isrc -lm \"%s\" -o \"%s\" 2>/dev/null || "
+        "gcc -O2 -I. -Isrc -lm \"%s\" -o \"%s\"",
+        c_file_path, output_exe_path,
+        c_file_path, output_exe_path);
+    res = system(compile_cmd);
+#else
     char compile_cmd[4096] = "";
 
     // ── Locate the best available C compiler ─────────────────────────────
@@ -640,49 +720,72 @@ bool codegen_generate_executable(ASTNode *program, const char *output_exe_path, 
     // when embedded quotes are in argument strings (SDK include/lib paths).
     // Workaround: write the command to a temp .bat file and run it via cmd /C.
 
-    const char *known_clang_paths[] = {
+    const char *known_compilers[] = {
         "C:\\Program Files\\LLVM\\bin\\clang.exe",
         "C:\\Program Files (x86)\\LLVM\\bin\\clang.exe",
         "C:\\LLVM\\bin\\clang.exe",
+        "C:\\BuildTools\\VC\\Tools\\MSVC\\14.44.35207\\bin\\Hostx64\\x64\\cl.exe",
         NULL
     };
 
-    // Windows SDK / MSVC include + lib directories (same as build.bat)
-    const char *inc_flags =
-        "-I. "
-        "-D_CRT_SECURE_NO_WARNINGS "
-        "-IC:\\BuildTools\\VC\\Tools\\MSVC\\14.44.35207\\include "
-        "-I\"C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.22621.0\\ucrt\" "
-        "-I\"C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.22621.0\\um\" "
-        "-I\"C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.22621.0\\shared\"";
-
-    const char *lib_flags =
-        "-LC:\\BuildTools\\VC\\Tools\\MSVC\\14.44.35207\\lib\\x64 "
-        "-L\"C:\\Program Files (x86)\\Windows Kits\\10\\Lib\\10.0.22621.0\\ucrt\\x64\" "
-        "-L\"C:\\Program Files (x86)\\Windows Kits\\10\\Lib\\10.0.22621.0\\um\\x64\" "
-        "-luser32 -lgdi32";
-
     char compiler_exe[512] = "";
-    int res = -1;
 
-    // Find full-path Clang
-    for (int i = 0; known_clang_paths[i] != NULL; i++) {
-        FILE *test_f = fopen(known_clang_paths[i], "rb");
+    for (int i = 0; known_compilers[i] != NULL; i++) {
+        FILE *test_f = fopen(known_compilers[i], "rb");
         if (test_f) {
             fclose(test_f);
-            strncpy(compiler_exe, known_clang_paths[i], sizeof(compiler_exe) - 1);
+            strncpy(compiler_exe, known_compilers[i], sizeof(compiler_exe) - 1);
             break;
         }
     }
 
-    // Build the compile command string
     char inner_cmd[4096] = "";
     if (compiler_exe[0] != '\0') {
-        snprintf(inner_cmd, sizeof(inner_cmd),
-            "\"%s\" -O2 -Wno-everything %s %s \"%s\" -o \"%s\"",
-            compiler_exe, inc_flags, lib_flags, c_file_path, output_exe_path);
+        if (strstr(compiler_exe, "cl.exe")) {
+            snprintf(inner_cmd, sizeof(inner_cmd),
+                "\"%s\" /nologo /O2 /I. /Isrc -D_CRT_SECURE_NO_WARNINGS "
+                "-IC:\\BuildTools\\VC\\Tools\\MSVC\\14.44.35207\\include "
+                "\"-IC:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.22621.0\\ucrt\" "
+                "\"-IC:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.22621.0\\um\" "
+                "\"-IC:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.22621.0\\shared\" "
+                "\"%s\" /Fe:\"%s\" /link "
+                "/LIBPATH:C:\\BuildTools\\VC\\Tools\\MSVC\\14.44.35207\\lib\\x64 "
+                "\"/LIBPATH:C:\\Program Files (x86)\\Windows Kits\\10\\Lib\\10.0.22621.0\\ucrt\\x64\" "
+                "\"/LIBPATH:C:\\Program Files (x86)\\Windows Kits\\10\\Lib\\10.0.22621.0\\um\\x64\" "
+                "User32.lib Gdi32.lib",
+                compiler_exe, c_file_path, output_exe_path);
+        } else {
+            const char *inc_flags =
+                "-I. -Isrc -D_CRT_SECURE_NO_WARNINGS "
+                "-IC:\\BuildTools\\VC\\Tools\\MSVC\\14.44.35207\\include "
+                "-I\"C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.22621.0\\ucrt\" "
+                "-I\"C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.22621.0\\um\" "
+                "-I\"C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.22621.0\\shared\"";
+
+            const char *lib_flags =
+                "-LC:\\BuildTools\\VC\\Tools\\MSVC\\14.44.35207\\lib\\x64 "
+                "-L\"C:\\Program Files (x86)\\Windows Kits\\10\\Lib\\10.0.22621.0\\ucrt\\x64\" "
+                "-L\"C:\\Program Files (x86)\\Windows Kits\\10\\Lib\\10.0.22621.0\\um\\x64\" "
+                "-luser32 -lgdi32";
+
+            snprintf(inner_cmd, sizeof(inner_cmd),
+                "\"%s\" -O2 -Wno-everything %s %s \"%s\" -o \"%s\"",
+                compiler_exe, inc_flags, lib_flags, c_file_path, output_exe_path);
+        }
     } else {
-        // Fallback: clang/gcc in PATH
+        const char *inc_flags =
+            "-I. -Isrc -D_CRT_SECURE_NO_WARNINGS "
+            "-IC:\\BuildTools\\VC\\Tools\\MSVC\\14.44.35207\\include "
+            "-I\"C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.22621.0\\ucrt\" "
+            "-I\"C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.22621.0\\um\" "
+            "-I\"C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.22621.0\\shared\"";
+
+        const char *lib_flags =
+            "-LC:\\BuildTools\\VC\\Tools\\MSVC\\14.44.35207\\lib\\x64 "
+            "-L\"C:\\Program Files (x86)\\Windows Kits\\10\\Lib\\10.0.22621.0\\ucrt\\x64\" "
+            "-L\"C:\\Program Files (x86)\\Windows Kits\\10\\Lib\\10.0.22621.0\\um\\x64\" "
+            "-luser32 -lgdi32";
+
         snprintf(inner_cmd, sizeof(inner_cmd),
             "clang -O2 -Wno-everything %s %s \"%s\" -o \"%s\" || "
             "gcc -O2 \"%s\" -o \"%s\"",
@@ -691,13 +794,12 @@ bool codegen_generate_executable(ASTNode *program, const char *output_exe_path, 
     }
 
     // Write to a temp .bat so cmd handles quoting properly
-    char bat_path[256];
-    snprintf(bat_path, sizeof(bat_path), "%s_build.bat", output_exe_path);
+    char bat_path[256] = "cand_build_tmp.bat";
     FILE *bat = fopen(bat_path, "w");
     if (bat) {
         fprintf(bat, "@echo off\r\n%s\r\n", inner_cmd);
         fclose(bat);
-        snprintf(compile_cmd, sizeof(compile_cmd), "cmd.exe /C \"%s\"", bat_path);
+        snprintf(compile_cmd, sizeof(compile_cmd), "cmd.exe /C %s", bat_path);
         res = system(compile_cmd);
         remove(bat_path);
     } else {
@@ -705,6 +807,7 @@ bool codegen_generate_executable(ASTNode *program, const char *output_exe_path, 
         snprintf(compile_cmd, sizeof(compile_cmd), "cmd.exe /C \"%s\"", inner_cmd);
         res = system(compile_cmd);
     }
+#endif
 
     if (res != 0) {
         fprintf(stderr, "%s:1:1: error: Native compilation failed\n", c_file_path);

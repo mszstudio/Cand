@@ -1,0 +1,12 @@
+// C& Programming Language — Main AI Standard Library Entry Point (std/ai.cand)
+// Copyright (c) 2026 MSZ Studio. All rights reserved.
+
+import ai/tensor
+import ai/autograd
+import ai/nn
+import ai/tokenizer
+import ai/model
+
+pub fn ai_info() -> void {
+    println("C& AI Engine v1.0 — Native Tensor & Neural Network Architecture");
+}

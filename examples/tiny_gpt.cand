@@ -1,0 +1,80 @@
+// C& Programming Language — TinyGPT Native Neural Network Model Demo
+// Trains a native 2-layer Neural Network on input data with zero external dependencies!
+
+import ai/tensor
+import ai/autograd
+import ai/nn
+
+fn main() {
+    println("=========================================================");
+    println("   C& TinyGPT — Native Neural Network Training Demo     ");
+    println("=========================================================");
+
+    // Define Network Dimensions
+    let input_dim = 4;
+    let hidden_dim = 6;
+    let output_dim = 2;
+
+    // Initialize Input Data (X) and Target Data (Y)
+    let X = tensor_ones(1, input_dim);
+    let Y_target = tensor_zeros(1, output_dim);
+    tensor_set(Y_target, 0, 0, 1.0); // Target = [1.0, 0.0]
+
+    // Initialize Layer 1 Weights & Bias
+    let W1 = tensor_rand(input_dim, hidden_dim, 0.0, 0.5);
+    let b1 = tensor_zeros(1, hidden_dim);
+
+    // Initialize Layer 2 Weights & Bias
+    let W2 = tensor_rand(hidden_dim, output_dim, 0.0, 0.5);
+    let b2 = tensor_zeros(1, output_dim);
+
+    println("\n[1] Initial Target Output:");
+    tensor_print(Y_target, "Target Y");
+
+    println("[2] Starting Native Training Loop (10 Epochs)...");
+    let learning_rate = 0.05;
+
+    let mut epoch = 1;
+    while (epoch <= 10) {
+        // Forward Pass: Layer 1 -> ReLU -> Layer 2 -> Softmax
+        let h1 = dense_layer(X, W1, b1);
+        let a1 = tensor_relu(h1);
+        let logits = dense_layer(a1, W2, b2);
+        let probs = tensor_softmax(logits);
+
+        // Calculate MSE Loss
+        let loss = mse_loss(probs, Y_target);
+        println("Epoch ");
+        print(epoch);
+        print(" | Loss: ");
+        println(loss);
+
+        // Backward Pass (Autograd)
+        zero_grad(W1);
+        zero_grad(W2);
+        backward(probs);
+
+        // Optimizer Step (SGD)
+        sgd_step(W1, learning_rate);
+        sgd_step(W2, learning_rate);
+
+        // Clean up step tensors
+        tensor_free(h1);
+        tensor_free(a1);
+        tensor_free(logits);
+        tensor_free(probs);
+
+        epoch = epoch + 1;
+    }
+
+    println("\n[SUCCESS] Native TinyGPT Model Trained Successfully in C&!");
+    println("=========================================================");
+
+    // Free model parameters
+    tensor_free(X);
+    tensor_free(Y_target);
+    tensor_free(W1);
+    tensor_free(b1);
+    tensor_free(W2);
+    tensor_free(b2);
+}

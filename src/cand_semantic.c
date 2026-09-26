@@ -148,12 +148,12 @@ static void analyze_node(SymbolTable *st, ASTNode *node) {
         case AST_EXTERN_DECL:
             for (int i = 0; i < node->child_count; i++) {
                 ASTNode *fn_node = node->children[i];
-                symbol_table_add(st, fn_node->name, fn_node->type_name, SYMBOL_FUNCTION, true, false, false, fn_node->line, fn_node->col);
+                symbol_table_add(st, fn_node->name, fn_node->type_name, SYMBOL_FUNCTION, true, false, fn_node->is_pointer, fn_node->line, fn_node->col);
             }
             break;
 
         case AST_FN_DECL: {
-            symbol_table_add(st, node->name, node->type_name, SYMBOL_FUNCTION, node->is_pub, false, false, node->line, node->col);
+            symbol_table_add(st, node->name, node->type_name, SYMBOL_FUNCTION, node->is_pub, false, node->is_pointer, node->line, node->col);
 
             // Push function scope
             Scope *fn_scope = scope_create(st->current_scope);
@@ -189,6 +189,27 @@ static void analyze_node(SymbolTable *st, ASTNode *node) {
         }
 
         case AST_LET_DECL: {
+            if (node->child_count > 0 && (node->type_name[0] == '\0' || strcmp(node->type_name, "int") == 0 && !node->is_pointer)) {
+                ASTNode *init_expr = node->children[0];
+                if (init_expr->kind == AST_CALL_EXPR) {
+                    Symbol *fn_sym = symbol_table_lookup(st, init_expr->name);
+                    if (fn_sym && fn_sym->kind == SYMBOL_FUNCTION && fn_sym->type_name[0] != '\0') {
+                        strcpy(node->type_name, fn_sym->type_name);
+                        node->is_pointer = fn_sym->is_pointer;
+                    }
+                } else if (init_expr->kind == AST_LITERAL_EXPR) {
+                    if (init_expr->value[0] == '"') {
+                        strcpy(node->type_name, "string");
+                        node->is_pointer = true;
+                    } else if (strchr(init_expr->value, '.')) {
+                        strcpy(node->type_name, "float");
+                        node->is_pointer = false;
+                    } else {
+                        strcpy(node->type_name, "int");
+                        node->is_pointer = false;
+                    }
+                }
+            }
             if (!is_valid_type(st, node->type_name, node->is_pointer)) {
                 fprintf(stderr, "%s:%d:%d: error: Unknown type '%s' in declaration of '%s'\n",
                         node->filename, node->line, node->col, node->type_name, node->name);

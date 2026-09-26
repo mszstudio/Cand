@@ -1,0 +1,23 @@
+// C& Programming Language — Native Neural Network Library (std/ai/nn.cand)
+// Copyright (c) 2026 MSZ Studio. All rights reserved.
+
+extern "C" fn cand_nn_dense_forward(input: *void, weights: *void, bias: *void) -> *void
+extern "C" fn cand_nn_sgd_step(weights: *void, lr: float) -> void
+extern "C" fn cand_nn_mse_loss(pred: *void, target: *void) -> float
+extern "C" fn cand_nn_cross_entropy_loss(probs: *void, target_class: int) -> float
+
+pub fn dense_layer(input: *void, weights: *void, bias: *void) -> *void {
+    return cand_nn_dense_forward(input, weights, bias);
+}
+
+pub fn sgd_step(weights: *void, lr: float) -> void {
+    cand_nn_sgd_step(weights, lr);
+}
+
+pub fn mse_loss(pred: *void, target: *void) -> float {
+    return cand_nn_mse_loss(pred, target);
+}
+
+pub fn cross_entropy_loss(probs: *void, target_class: int) -> float {
+    return cand_nn_cross_entropy_loss(probs, target_class);
+}

@@ -1,0 +1,15 @@
+Source: cand
+Section: devel
+Priority: optional
+Maintainer: MSZ Studio <contact@mszstudio.com>
+Build-Depends: debhelper (>= 10), gcc, make
+Standards-Version: 4.5.0
+Homepage: https://github.com/mszstudio/Cand
+
+Package: cand
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, gcc | clang, libc6-dev
+Description: C& Programming Language Native Compiler Toolchain
+ C& (Cand) is an independent native programming language designed for
+ high performance, AI computation, direct C interop, and clean expressive syntax.
+ This package provides the compiler binary (cand) and standard libraries.

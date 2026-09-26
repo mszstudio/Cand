@@ -2,6 +2,9 @@
 
 extern "C" fn exit(status: int) -> void
 extern "C" fn Sleep(dwMilliseconds: int) -> void
+extern "C" fn malloc(size: int) -> *void
+extern "C" fn free(ptr: *void) -> void
+extern "C" fn realloc(ptr: *void, size: int) -> *void
 
 pub fn exit_app(code: int) -> void {
     exit(code);
@@ -10,3 +13,16 @@ pub fn exit_app(code: int) -> void {
 pub fn sleep_ms(ms: int) -> void {
     Sleep(ms);
 }
+
+pub fn alloc(size: int) -> *void {
+    return malloc(size);
+}
+
+pub fn free_mem(ptr: *void) -> void {
+    free(ptr);
+}
+
+pub fn realloc_mem(ptr: *void, size: int) -> *void {
+    return realloc(ptr, size);
+}
+

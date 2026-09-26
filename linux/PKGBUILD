@@ -1,0 +1,30 @@
+# Maintainer: MSZ Studio <contact@mszstudio.com>
+pkgname=cand
+pkgver=1.0.0
+pkgrel=1
+pkgdesc="C& Programming Language Native Compiler Toolchain"
+arch=('x86_64' 'aarch64')
+url="https://github.com/mszstudio/Cand"
+license=('MIT')
+depends=('glibc' 'gcc')
+makedepends=('make')
+source=("$pkgname-$pkgver.tar.gz::https://github.com/mszstudio/Cand/archive/v$pkgver.tar.gz")
+sha256sums=('SKIP')
+
+build() {
+    cd "$srcdir"
+    if [ -d "$pkgname-$pkgver" ]; then cd "$pkgname-$pkgver"; fi
+    make CC=gcc CFLAGS="-O2 -Wall -Wextra -I. -Isrc" LDFLAGS="-lm"
+}
+
+package() {
+    cd "$srcdir"
+    if [ -d "$pkgname-$pkgver" ]; then cd "$pkgname-$pkgver"; fi
+    
+    install -Dm755 cand "$pkgdir/usr/bin/cand"
+    install -d "$pkgdir/usr/share/cand/std"
+    cp -rf std/* "$pkgdir/usr/share/cand/std/"
+    install -Dm644 cand.toml "$pkgdir/usr/share/cand/cand.toml"
+    install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+    install -Dm644 README.md "$pkgdir/usr/share/doc/$pkgname/README.md"
+}

@@ -1,0 +1,102 @@
+// C& Programming Language — Native AI Tensor Library (std/ai/tensor.cand)
+// Copyright (c) 2026 MSZ Studio. All rights reserved.
+
+extern "C" fn cand_tensor_create(d0: int, d1: int, d2: int, d3: int, ndim: int) -> *void
+extern "C" fn cand_tensor_zeros(rows: int, cols: int) -> *void
+extern "C" fn cand_tensor_ones(rows: int, cols: int) -> *void
+extern "C" fn cand_tensor_rand(rows: int, cols: int, min_val: float, max_val: float) -> *void
+extern "C" fn cand_tensor_free(t: *void) -> void
+extern "C" fn cand_tensor_get(t: *void, r: int, c: int) -> float
+extern "C" fn cand_tensor_set(t: *void, r: int, c: int, val: float) -> void
+extern "C" fn cand_tensor_print(t: *void, label: string) -> void
+
+extern "C" fn cand_tensor_add(a: *void, b: *void) -> *void
+extern "C" fn cand_tensor_sub(a: *void, b: *void) -> *void
+extern "C" fn cand_tensor_mul(a: *void, b: *void) -> *void
+extern "C" fn cand_tensor_div(a: *void, b: *void) -> *void
+extern "C" fn cand_tensor_matmul(a: *void, b: *void) -> *void
+
+extern "C" fn cand_tensor_relu(a: *void) -> *void
+extern "C" fn cand_tensor_softmax(a: *void) -> *void
+extern "C" fn cand_tensor_sigmoid(a: *void) -> *void
+extern "C" fn cand_tensor_tanh(a: *void) -> *void
+
+extern "C" fn cand_tensor_sum(a: *void) -> float
+extern "C" fn cand_tensor_mean(a: *void) -> float
+extern "C" fn cand_tensor_argmax(a: *void) -> int
+
+pub fn tensor_zeros(rows: int, cols: int) -> *void {
+    return cand_tensor_zeros(rows, cols);
+}
+
+pub fn tensor_ones(rows: int, cols: int) -> *void {
+    return cand_tensor_ones(rows, cols);
+}
+
+pub fn tensor_rand(rows: int, cols: int, min_v: float, max_v: float) -> *void {
+    return cand_tensor_rand(rows, cols, min_v, max_v);
+}
+
+pub fn tensor_free(t: *void) -> void {
+    cand_tensor_free(t);
+}
+
+pub fn tensor_get(t: *void, r: int, c: int) -> float {
+    return cand_tensor_get(t, r, c);
+}
+
+pub fn tensor_set(t: *void, r: int, c: int, val: float) -> void {
+    cand_tensor_set(t, r, c, val);
+}
+
+pub fn tensor_print(t: *void, label: string) -> void {
+    cand_tensor_print(t, label);
+}
+
+pub fn tensor_add(a: *void, b: *void) -> *void {
+    return cand_tensor_add(a, b);
+}
+
+pub fn tensor_sub(a: *void, b: *void) -> *void {
+    return cand_tensor_sub(a, b);
+}
+
+pub fn tensor_mul(a: *void, b: *void) -> *void {
+    return cand_tensor_mul(a, b);
+}
+
+pub fn tensor_div(a: *void, b: *void) -> *void {
+    return cand_tensor_div(a, b);
+}
+
+pub fn tensor_matmul(a: *void, b: *void) -> *void {
+    return cand_tensor_matmul(a, b);
+}
+
+pub fn tensor_relu(a: *void) -> *void {
+    return cand_tensor_relu(a);
+}
+
+pub fn tensor_softmax(a: *void) -> *void {
+    return cand_tensor_softmax(a);
+}
+
+pub fn tensor_sigmoid(a: *void) -> *void {
+    return cand_tensor_sigmoid(a);
+}
+
+pub fn tensor_tanh(a: *void) -> *void {
+    return cand_tensor_tanh(a);
+}
+
+pub fn tensor_sum(a: *void) -> float {
+    return cand_tensor_sum(a);
+}
+
+pub fn tensor_mean(a: *void) -> float {
+    return cand_tensor_mean(a);
+}
+
+pub fn tensor_argmax(a: *void) -> int {
+    return cand_tensor_argmax(a);
+}

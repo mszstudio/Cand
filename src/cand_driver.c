@@ -4,8 +4,21 @@
  */
 
 #include "cand_compiler.h"
+#ifdef _WIN32
 #include <windows.h>
 #include <io.h>
+#include <direct.h>
+#define cand_mkdir(path) _mkdir(path)
+#define CAND_EXE_EXT ".exe"
+#else
+#include <unistd.h>
+#include <dirent.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#define cand_mkdir(path) mkdir(path, 0755)
+#define CAND_EXE_EXT ""
+#endif
 
 static void print_usage() {
     printf("C& Programming Language Compiler Toolchain v%s\n", CAND_VERSION);
@@ -75,7 +88,7 @@ static bool build_file(const char *source_path, const char *output_exe_path) {
         return false;
     }
 
-    bool success = codegen_generate_executable(program, output_exe_path, false);
+    bool success = codegen_generate_executable(program, output_exe_path, true);
     if (success) {
         printf("    Finished %s\n", output_exe_path);
     } else {
@@ -96,20 +109,25 @@ static int cmd_doctor() {
     printf("=== C& Compiler Toolchain Doctor ===\n");
     printf("  [✓] C& Native Compiler Engine: v%s\n", CAND_VERSION);
 
+#ifdef _WIN32
     int clang_res = system("clang --version >NUL 2>&1");
     int gcc_res = system("gcc --version >NUL 2>&1");
+#else
+    int clang_res = system("clang --version >/dev/null 2>&1");
+    int gcc_res = system("gcc --version >/dev/null 2>&1");
+#endif
 
     if (clang_res == 0) {
         printf("  [✓] Host C Compiler: Clang detected\n");
     } else if (gcc_res == 0) {
         printf("  [✓] Host C Compiler: GCC detected\n");
     } else {
-        printf("  [!] Host C Compiler: System Clang/GCC not found in PATH (will attempt MSVC)\n");
+        printf("  [!] Host C Compiler: System Clang/GCC not found in PATH\n");
     }
 
     printf("  [✓] Language Autonomy: 100%% Standalone (No Rust, No External Tooling)\n");
     printf("  [✓] C ABI Interop (FFI): Fully Functional\n");
-    printf("  [✓] Module Resolution: Active Local Resolution\n");
+    printf("  [✓] Module Resolution: Active Local & System Resolution\n");
     printf("\nSystem is fully ready for C& development!\n");
     return 0;
 }
@@ -146,63 +164,107 @@ static int cmd_add(const char *package_name) {
 static int cmd_test() {
     printf("   Discovering and running native C& tests...\n");
 
-    WIN32_FIND_DATAA findData;
-    HANDLE hFind = FindFirstFileA("tests\\*.cand", &findData);
-
     int total_tests = 0;
     int passed_tests = 0;
     int failed_tests = 0;
 
-    if (hFind == INVALID_HANDLE_VALUE) {
-        // Search current directory if tests folder doesn't exist
-        hFind = FindFirstFileA("*.cand", &findData);
-    }
+    const char *search_dirs[] = {"tests", "experiments/tests", ".", NULL};
 
-    if (hFind != INVALID_HANDLE_VALUE) {
-        do {
-            char test_path[256];
-            snprintf(test_path, sizeof(test_path), "tests\\%s", findData.cFileName);
-            if (GetFileAttributesA(test_path) == INVALID_FILE_ATTRIBUTES) {
-                snprintf(test_path, sizeof(test_path), "%s", findData.cFileName);
-            }
+#ifdef _WIN32
+    for (int d = 0; search_dirs[d] != NULL; d++) {
+        char search_pattern[256];
+        snprintf(search_pattern, sizeof(search_pattern), "%s\\*.cand", search_dirs[d]);
+        WIN32_FIND_DATAA findData;
+        HANDLE hFind = FindFirstFileA(search_pattern, &findData);
+        if (hFind != INVALID_HANDLE_VALUE) {
+            do {
+                char test_path[256];
+                snprintf(test_path, sizeof(test_path), "%s\\%s", search_dirs[d], findData.cFileName);
 
-            // Check if file is a test entrypoint (contains 'main' function or named test_main)
-            char *src = read_file(test_path);
-            if (!src) continue;
-            if (strstr(src, "main") == NULL) {
+                char *src = read_file(test_path);
+                if (!src) continue;
+                if (strstr(src, "main") == NULL) {
+                    free(src);
+                    continue;
+                }
                 free(src);
-                continue; // Skip library modules without a main entry point
-            }
-            free(src);
 
-            total_tests++;
-            char out_exe[256];
-            snprintf(out_exe, sizeof(out_exe), "test_%d.exe", total_tests);
+                total_tests++;
+                char out_exe[256];
+                snprintf(out_exe, sizeof(out_exe), "test_%d.exe", total_tests);
 
-            if (build_file(test_path, out_exe)) {
-                char run_cmd[512];
-                snprintf(run_cmd, sizeof(run_cmd), "%s >NUL 2>&1", out_exe);
-                int run_res = system(run_cmd);
-                remove(out_exe);
+                if (build_file(test_path, out_exe)) {
+                    char run_cmd[512];
+                    snprintf(run_cmd, sizeof(run_cmd), "%s >NUL 2>&1", out_exe);
+                    int run_res = system(run_cmd);
+                    remove(out_exe);
 
-                if (run_res == 0) {
-                    printf("   [PASS] %s ... ok\n", findData.cFileName);
-                    passed_tests++;
+                    if (run_res == 0) {
+                        printf("   [PASS] %s ... ok\n", findData.cFileName);
+                        passed_tests++;
+                    } else {
+                        printf("   [FAIL] %s ... failed (exit code %d)\n", findData.cFileName, run_res);
+                        failed_tests++;
+                    }
                 } else {
-                    printf("   [FAIL] %s ... failed (exit code %d)\n", findData.cFileName, run_res);
+                    printf("   [FAIL] %s ... compilation failed\n", findData.cFileName);
                     failed_tests++;
                 }
-            } else {
-                printf("   [FAIL] %s ... compilation failed\n", findData.cFileName);
-                failed_tests++;
-            }
-
-        } while (FindNextFileA(hFind, &findData));
-        FindClose(hFind);
+            } while (FindNextFileA(hFind, &findData));
+            FindClose(hFind);
+            if (total_tests > 0) break;
+        }
     }
+#else
+    for (int d = 0; search_dirs[d] != NULL; d++) {
+        DIR *dir = opendir(search_dirs[d]);
+        if (dir) {
+            struct dirent *entry;
+            while ((entry = readdir(dir)) != NULL) {
+                size_t len = strlen(entry->d_name);
+                if (len > 5 && strcmp(entry->d_name + len - 5, ".cand") == 0) {
+                    char test_path[256];
+                    snprintf(test_path, sizeof(test_path), "%s/%s", search_dirs[d], entry->d_name);
+
+                    char *src = read_file(test_path);
+                    if (!src) continue;
+                    if (strstr(src, "main") == NULL) {
+                        free(src);
+                        continue;
+                    }
+                    free(src);
+
+                    total_tests++;
+                    char out_bin[256];
+                    snprintf(out_bin, sizeof(out_bin), "test_%d_bin", total_tests);
+
+                    if (build_file(test_path, out_bin)) {
+                        char run_cmd[512];
+                        snprintf(run_cmd, sizeof(run_cmd), "./%s >/dev/null 2>&1", out_bin);
+                        int run_res = system(run_cmd);
+                        remove(out_bin);
+
+                        if (run_res == 0) {
+                            printf("   [PASS] %s ... ok\n", entry->d_name);
+                            passed_tests++;
+                        } else {
+                            printf("   [FAIL] %s ... failed (exit code %d)\n", entry->d_name, run_res);
+                            failed_tests++;
+                        }
+                    } else {
+                        printf("   [FAIL] %s ... compilation failed\n", entry->d_name);
+                        failed_tests++;
+                    }
+                }
+            }
+            closedir(dir);
+            if (total_tests > 0) break;
+        }
+    }
+#endif
 
     if (total_tests == 0) {
-        printf("   No test files found in ./tests/ or ./\n");
+        printf("   No test files found in tests/, experiments/tests/, or current directory.\n");
         return 0;
     }
 
@@ -358,8 +420,8 @@ static int cmd_doc(const char *filename) {
     Parser *parser = parser_create(tokens, token_count, target);
     ASTNode *program = parser_parse_program(parser);
 
-    CreateDirectoryA("docs", NULL);
-    FILE *doc_file = fopen("docs\\index.html", "w");
+    cand_mkdir("docs");
+    FILE *doc_file = fopen("docs/index.html", "w");
     if (doc_file) {
         fprintf(doc_file, "<!DOCTYPE html>\n<html><head><title>C& Documentation</title>\n");
         fprintf(doc_file, "<style>body{font-family:sans-serif;padding:2rem;background:#0f172a;color:#f8fafc;}\n");
@@ -384,13 +446,23 @@ static int cmd_doc(const char *filename) {
 static int cmd_package() {
     printf("   Packaging project into release archive...\n");
 
-    CreateDirectoryA("dist", NULL);
+    cand_mkdir("dist");
+#ifdef _WIN32
     char cmd[512];
     snprintf(cmd, sizeof(cmd), "powershell -Command \"Compress-Archive -Path *.cand, cand.toml, src\\* -DestinationPath dist\\project_release.zip -Force\"");
     int res = system(cmd);
+#else
+    char cmd[512];
+    snprintf(cmd, sizeof(cmd), "tar -czf dist/project_release.tar.gz *.cand cand.toml src/ std/ 2>/dev/null || zip -r dist/project_release.zip *.cand cand.toml src/ std/ 2>/dev/null");
+    int res = system(cmd);
+#endif
 
     if (res == 0) {
+#ifdef _WIN32
         printf("   [✓] Created release archive: dist/project_release.zip\n");
+#else
+        printf("   [✓] Created release archive: dist/project_release.tar.gz\n");
+#endif
         return 0;
     } else {
         fprintf(stderr, "Error: Packaging failed.\n");
@@ -425,6 +497,9 @@ int main(int argc, char **argv) {
     if (strcmp(command, "package") == 0) return cmd_package();
     if (strcmp(command, "clean") == 0) {
         remove("main.exe");
+        remove("main");
+        remove("cand_run_tmp.exe");
+        remove("cand_run_tmp");
         printf("   Cleaned build artifacts.\n");
         return 0;
     }
@@ -435,7 +510,7 @@ int main(int argc, char **argv) {
             return 1;
         }
         const char *source_file = argv[2];
-        char output_exe[256] = "main.exe";
+        char output_exe[256];
 
         if (argc >= 5 && strcmp(argv[3], "-o") == 0) {
             strcpy(output_exe, argv[4]);
@@ -443,7 +518,9 @@ int main(int argc, char **argv) {
             strcpy(output_exe, source_file);
             char *dot = strrchr(output_exe, '.');
             if (dot) *dot = '\0';
+#ifdef _WIN32
             strcat(output_exe, ".exe");
+#endif
         }
 
         return build_file(source_file, output_exe) ? 0 : 1;
@@ -456,10 +533,8 @@ int main(int argc, char **argv) {
         }
         const char *source_file = argv[2];
 
-        // Always build into a local temp file to avoid path-with-slash issues
-        // when the source is in a subdirectory (e.g. tests/foo.cand).
+#ifdef _WIN32
         const char *tmp_exe = "cand_run_tmp.exe";
-
         if (build_file(source_file, tmp_exe)) {
             printf("     Running %s\n\n", source_file);
             char run_cmd[512];
@@ -468,6 +543,17 @@ int main(int argc, char **argv) {
             remove(tmp_exe);
             return ret;
         }
+#else
+        const char *tmp_exe = "cand_run_tmp";
+        if (build_file(source_file, tmp_exe)) {
+            printf("     Running %s\n\n", source_file);
+            char run_cmd[512];
+            snprintf(run_cmd, sizeof(run_cmd), "./%s", tmp_exe);
+            int ret = system(run_cmd);
+            remove(tmp_exe);
+            return ret;
+        }
+#endif
         remove(tmp_exe);
         return 1;
     }

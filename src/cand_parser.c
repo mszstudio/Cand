@@ -117,12 +117,24 @@ static ASTNode *parse_import(Parser *parser) {
     Token import_tok = advance_token(parser); // Consume 'import'
     ASTNode *node = create_node(AST_IMPORT_STMT, import_tok, parser->filename);
 
-    Token name_tok = peek_token(parser);
-    if (name_tok.kind == TOKEN_IDENTIFIER || name_tok.kind == TOKEN_STRING) {
-        advance_token(parser);
-        strcpy(node->name, name_tok.text);
+    char path_buf[256] = "";
+    while (1) {
+        Token tok = peek_token(parser);
+        if (tok.kind == TOKEN_IDENTIFIER || tok.kind == TOKEN_STRING) {
+            strcat(path_buf, tok.text);
+            advance_token(parser);
+        } else if (tok.kind == TOKEN_SLASH || tok.kind == TOKEN_DOT) {
+            strcat(path_buf, "/");
+            advance_token(parser);
+        } else {
+            break;
+        }
+    }
+
+    if (strlen(path_buf) > 0) {
+        strcpy(node->name, path_buf);
     } else {
-        fprintf(stderr, "%s:%d:%d: error: Expected module name after import\n", parser->filename, name_tok.line, name_tok.col);
+        fprintf(stderr, "%s:%d:%d: error: Expected module name after import\n", parser->filename, import_tok.line, import_tok.col);
     }
 
     match_token(parser, TOKEN_SEMICOLON);

@@ -1,0 +1,13 @@
+// C& Programming Language — Native Model Serialization Library (std/ai/model.cand)
+// Copyright (c) 2026 MSZ Studio. All rights reserved.
+
+extern "C" fn cand_model_save(t: *void, filename: string) -> int
+extern "C" fn cand_model_load(filename: string) -> *void
+
+pub fn model_save(tensor: *void, path: string) -> int {
+    return cand_model_save(tensor, path);
+}
+
+pub fn model_load(path: string) -> *void {
+    return cand_model_load(path);
+}

@@ -1,1 +1,15 @@
-1
+# Build and object artifacts
+*.obj
+*.o
+*.exe_gen.c
+cand_run_tmp*
+cand_build_tmp.bat
+
+# Installer Output
+Output/
+
+# Experimental binaries, temp artifacts and test executables
+experiments/binaries/
+experiments/temp/
+experiments/tests/*.exe
+experiments/tests/*.obj

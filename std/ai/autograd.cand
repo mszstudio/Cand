@@ -1,0 +1,13 @@
+// C& Programming Language — Native Autograd Engine (std/ai/autograd.cand)
+// Copyright (c) 2026 MSZ Studio. All rights reserved.
+
+extern "C" fn cand_tensor_backward(t: *void) -> void
+extern "C" fn cand_tensor_zero_grad(t: *void) -> void
+
+pub fn backward(t: *void) -> void {
+    cand_tensor_backward(t);
+}
+
+pub fn zero_grad(t: *void) -> void {
+    cand_tensor_zero_grad(t);
+}

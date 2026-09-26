@@ -1,0 +1,62 @@
+// C& Programming Language — Native Tensor & Autograd Engine Demonstration
+// Built natively in C& without Python dependencies!
+
+import ai/tensor
+import ai/autograd
+import ai/model
+
+fn main() {
+    println("=================================================");
+    println("   C& AI Engine — Pure Native Tensor & Autograd  ");
+    println("=================================================");
+
+    // 1. Create Input Matrix A (2x3) and Weight Matrix B (3x2)
+    let A = tensor_ones(2, 3);
+    let B = tensor_rand(3, 2, 0.1, 1.0);
+
+    println("\n[1] Input Matrix A:");
+    tensor_print(A, "Matrix A");
+
+    println("[2] Weight Matrix B:");
+    tensor_print(B, "Matrix B");
+
+    // 2. Perform Native Matrix Multiplication (Matmul)
+    let C = tensor_matmul(A, B);
+    println("[3] Result Matrix C = A @ B:");
+    tensor_print(C, "Matmul Output");
+
+    // 3. Apply ReLU Activation
+    let R = tensor_relu(C);
+    println("[4] Result after ReLU Activation:");
+    tensor_print(R, "ReLU Output");
+
+    // 4. Reverse-mode Automatic Differentiation (Autograd)
+    println("[5] Performing Autograd Backward Pass...");
+    backward(R);
+    println("[SUCCESS] Gradient computation completed automatically!");
+
+    // 5. Serialize Model Weights to Native Binary Format (.candmodel)
+    println("\n[6] Saving Tensor Weights to 'weights.candmodel'...");
+    let status = model_save(B, "weights.candmodel");
+    if (status == 0) {
+        println("[SUCCESS] Model serialized to weights.candmodel!");
+    } else {
+        println("[ERROR] Model serialization failed.");
+    }
+
+    // 6. Reload Model Weights from Disk
+    println("[7] Reloading Model Weights from 'weights.candmodel'...");
+    let loaded_B = model_load("weights.candmodel");
+    tensor_print(loaded_B, "Loaded Matrix B");
+
+    // Clean up memory
+    tensor_free(A);
+    tensor_free(B);
+    tensor_free(C);
+    tensor_free(R);
+    tensor_free(loaded_B);
+
+    println("=================================================");
+    println("   C& Native AI Engine Execution Completed!      ");
+    println("=================================================");
+}
